@@ -1,0 +1,2 @@
+listenerPort = ""
+logFileLocation = "/var/log/pravaah_server.log"
