@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Collect build data
-BUILDMACHINE=`uname -m`
+BUILDMACHINE=`uname -n`
 BUILDUSER=`whoami`
 GOVER=`go version | awk -F' ' '{print $3}'`
 BUILDARCH="`go env GOHOSTOS`/`go env GOHOSTARCH`"
