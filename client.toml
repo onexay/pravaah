@@ -1,2 +1,2 @@
 remoteLocation = ""
-logFileLocation = "/var/log/pravaah_client.log"
+logFileLocation = "./logs/pravaah_client.log"

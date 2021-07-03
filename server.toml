@@ -1,2 +1,3 @@
-listenerPort = ""
-logFileLocation = "/var/log/pravaah_server.log"
+listenerEndpoint = ":10080"
+apiEndpoint = ":8080"
+logFileLocation = "./logs/pravaah_server.log"

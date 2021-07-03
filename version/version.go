@@ -1,7 +1,7 @@
 package version
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -19,13 +19,13 @@ var (
 func ShowBuildVersion() {
 	ts, _ := strconv.ParseInt(BuildTS, 10, 32)
 
-	log.Printf("Starting Pravaah\n")
-	log.Printf("	Build machine     : %s", BuildMachine)
-	log.Printf("	Build user        : %s", BuildUser)
-	log.Printf("	Build go version  : %s", GOVersion)
-	log.Printf("	Build host arch   : %s", BuildArch)
-	log.Printf("	Build target arch : %s", TargetArch)
-	log.Printf("	Build timestamp   : %s", time.Unix(ts, 0))
-	log.Printf("	Build git info    : %s", GITInfo)
-	log.Printf("\n")
+	fmt.Printf("Starting Pravaah\n")
+	fmt.Printf("	Build machine     : %s\n", BuildMachine)
+	fmt.Printf("	Build user        : %s\n", BuildUser)
+	fmt.Printf("	Build go version  : %s\n", GOVersion)
+	fmt.Printf("	Build host arch   : %s\n", BuildArch)
+	fmt.Printf("	Build target arch : %s\n", TargetArch)
+	fmt.Printf("	Build timestamp   : %s\n", time.Unix(ts, 0))
+	fmt.Printf("	Build git info    : %s\n", GITInfo)
+	fmt.Printf("\n")
 }
