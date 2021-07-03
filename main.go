@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"pravaah/client"
+	"pravaah/agent"
 	"pravaah/config"
 	"pravaah/server"
 	"pravaah/version"
@@ -20,6 +20,6 @@ func main() {
 	if config.ServerMode {
 		server.Server_main(config.ConfigFile)
 	} else {
-		client.Client_main(config.ConfigFile)
+		agent.Agent_main(config.ConfigFile)
 	}
 }

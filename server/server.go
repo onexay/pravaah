@@ -1,7 +1,3 @@
-/*
- *
- *
- */
 package server
 
 import (
@@ -24,15 +20,28 @@ func Server_main(configFile string) {
 	// Server mode of operation
 	fmt.Printf("Starting server ...\n")
 
+	// Initialize a secret
+	if err := InitSecret(); err != nil {
+		fmt.Printf("Unable to generate secret, error [%s]\n", err.Error())
+		return
+	}
+
+	// Dump secret on console for admin
+	fmt.Printf("Server secret is [%s]\n", config.Secret)
+
 	// Check for config file
 	if configFile == "" {
 		fmt.Printf("No config file specified. Exiting.\n")
 		return
 	}
 
+	// Parse config file
+	_ = config.ParseServerFile(configFile)
+
 	// Logger setup
 	logger.Filename = config.Server.LogFileLocation
 	logger.MaxSize = 1
+	log.SetPrefix("[PRAVAAH SERVER] ")
 	log.SetOutput(&logger)
 
 	// Create a websocket router
@@ -50,6 +59,8 @@ func Server_main(configFile string) {
 	http_router.Get(api.URL_LIST, api.List)
 	http_router.Post(api.URL_ADD, api.Add)
 	http_router.Delete(api.URL_REMOVE, api.Remove)
+	http_router.Post(api.URL_START, api.Start)
+	http_router.Post(api.URL_STOP, api.Stop)
 
 	// Wait for websocket connections from client
 	go http.ListenAndServe(":10080", ws_router)

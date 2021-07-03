@@ -8,6 +8,7 @@ BUILDARCH="`go env GOHOSTOS`/`go env GOHOSTARCH`"
 TARGETARCH="`go env GOOS`/`go env GOARCH`"
 BUILDTS=`date +"%s"`
 GITINFO=`git describe --long --tags`
+DEVBUILD="True"
 
 # Build
 echo "Building Pravaah ..."
@@ -26,4 +27,5 @@ go build -v -ldflags "-X pravaah/version.BuildMachine=$BUILDMACHINE \
                       -X pravaah/version.BuildArch=$BUILDARCH \
                       -X pravaah/version.TargetArch=$TARGETARCH \
                       -X pravaah/version.BuildTS=$BUILDTS \
-                      -X pravaah/version.GITInfo=$GITINFO"
+                      -X pravaah/version.GITInfo=$GITINFO \
+                      -X pravaah/version.DevBuild=$DEVBUILD"

@@ -14,10 +14,14 @@ var (
 	TargetArch   string
 	GITInfo      string
 	BuildTS      string
+	DevBuild     string
 )
+
+var IsDevBuild bool
 
 func ShowBuildVersion() {
 	ts, _ := strconv.ParseInt(BuildTS, 10, 32)
+	IsDevBuild, _ = strconv.ParseBool(DevBuild)
 
 	fmt.Printf("Starting Pravaah\n")
 	fmt.Printf("	Build machine     : %s\n", BuildMachine)
@@ -27,5 +31,10 @@ func ShowBuildVersion() {
 	fmt.Printf("	Build target arch : %s\n", TargetArch)
 	fmt.Printf("	Build timestamp   : %s\n", time.Unix(ts, 0))
 	fmt.Printf("	Build git info    : %s\n", GITInfo)
+	if IsDevBuild {
+		fmt.Printf("	Build type        : development\n")
+	} else {
+		fmt.Printf("	Build type        : release\n")
+	}
 	fmt.Printf("\n")
 }

@@ -1,0 +1,4 @@
+serverEndpoint = "localhost:10080"
+serverSecret = ""
+logFileLocation = "logs/pravaah_agent.log"
+dbLocation = "logs/agent_db"

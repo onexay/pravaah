@@ -12,4 +12,10 @@ const (
 
 	// Remove
 	URL_REMOVE = URL_BASE + "/remove"
+
+	// Start
+	URL_START = URL_BASE + "/start"
+
+	// Stop
+	URL_STOP = URL_BASE + "/stop"
 )

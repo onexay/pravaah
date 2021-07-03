@@ -1,3 +1,4 @@
 listenerEndpoint = ":10080"
 apiEndpoint = ":8080"
-logFileLocation = "./logs/pravaah_server.log"
+logFileLocation = "logs/pravaah_server.log"
+dbLocation = "logs/server_db"
