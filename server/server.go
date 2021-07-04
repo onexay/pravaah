@@ -53,6 +53,7 @@ func Server_main(configFile string) {
 	http_router.Use(middleware.Logger)
 
 	// Setup routes for websocket
+	ws_router.HandleFunc("/connect", HandleAgent)
 	ws_router.HandleFunc("/stream", stream.Handle)
 
 	// Setup routes for frontend
