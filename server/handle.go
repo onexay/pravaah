@@ -15,24 +15,33 @@ import (
 /* Handle connection request from an Agent
  *
  */
-func HandleAgentConnectionReq(conn *websocket.Conn, uuid *uuid.UUID, reqMsg *messaging.ReqMsg) {
+func HandleAgentConnectionReq(conn *websocket.Conn, reqMsg *messaging.ReqMsg) {
 	// Unmarshall data
 	var connectReqMsg messaging.ConnectReqMsg = messaging.ConnectReqMsg{}
 	if err := json.Unmarshal([]byte(reqMsg.Data), &connectReqMsg); err != nil {
-		log.Printf("Unable to unmarshall connect req to JSON from agent [%s], error [%s]\n", uuid.String(), err.Error())
+		log.Printf("Unable to unmarshall connect req to JSON from agent [%s], error [%s]\n", conn.RemoteAddr().String(), err.Error())
 		return
 	}
 
-	log.Printf("[%s] %s\n", uuid.String(), connectReqMsg)
+	// Check agent ID
+	var id uuid.UUID
+	if connectReqMsg.ID == "" {
+		log.Printf("Agent [%s] doesn't have an ID, generating a new one\n", conn.RemoteAddr().String())
+		id = uuid.New()
+	} else {
+		log.Printf("Agent [%s] has an ID [%s], reuseing same\n", conn.RemoteAddr().String(), connectReqMsg.ID)
+		id, _ = uuid.Parse(connectReqMsg.ID)
+	}
 
+	// Check server secret
 	if connectReqMsg.Secret != config.Secret {
-		log.Printf("Agent [%s] secret [%s] doesn't match current server secret [%s]\n", uuid.String(), connectReqMsg.Secret, config.Secret)
+		log.Printf("Agent [%s] secret [%s] doesn't match current server secret [%s]\n", id.String(), connectReqMsg.Secret, config.Secret)
 	}
 
 	// Create a response for this Agent
 	connectRspMsg, err := json.Marshal(messaging.ConnectRspMsg{
 		Version: version.GITInfo,
-		ID:      uuid.String(),
+		ID:      id.String(),
 	})
 
 	if err != nil {
@@ -72,29 +81,25 @@ func HandleAgent(res http.ResponseWriter, req *http.Request) {
 	// Close websocket
 	defer conn.Close()
 
-	// Generate a unique ID for this agent
-	uuid := uuid.New()
-
-	log.Printf("Assigned id [%s] to agent [%s]\n", uuid.String(), req.RemoteAddr)
-
+	// Process messages from this Agent
 	for {
 		// Read messages from this agent
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			log.Printf("Unable to receive message from agent [%s]\n", uuid.String())
+			log.Printf("Unable to receive message from agent [%s]\n", conn.RemoteAddr().String())
 			break
 		}
 
 		// Unmarshall
 		var reqMsg messaging.ReqMsg = messaging.ReqMsg{}
 		if err := json.Unmarshal(msg, &reqMsg); err != nil {
-			log.Printf("Unable to unmarshall message to JSON from agent [%s], error [%s]\n", uuid.String(), err.Error())
+			log.Printf("Unable to unmarshall message to JSON from agent [%s], error [%s]\n", conn.RemoteAddr().String(), err.Error())
 			break
 		}
 
 		// Dispatch message to handler
 		if reqMsg.Type == messaging.MSG_CONNECT_REQ {
-			HandleAgentConnectionReq(conn, &uuid, &reqMsg)
+			HandleAgentConnectionReq(conn, &reqMsg)
 		} else if reqMsg.Type == messaging.MSG_CAPABILITY {
 
 		}

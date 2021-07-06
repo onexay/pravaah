@@ -21,7 +21,7 @@ echo "  Build timestamp     : $BUILDTS"
 echo "  Build git info      : $GITINFO"
 
 go get
-go build -a -v -ldflags "-X pravaah/version.BuildMachine=$BUILDMACHINE \
+go build -v -ldflags "-X pravaah/version.BuildMachine=$BUILDMACHINE \
                       -X pravaah/version.BuildUser=$BUILDUSER \
                       -X pravaah/version.GOVersion=$GOVER \
                       -X pravaah/version.BuildArch=$BUILDARCH \

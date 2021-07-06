@@ -23,7 +23,9 @@ func ShowBuildVersion() {
 	ts, _ := strconv.ParseInt(BuildTS, 10, 32)
 	IsDevBuild, _ = strconv.ParseBool(DevBuild)
 
-	fmt.Printf("Starting Pravaah\n")
+	fmt.Printf("Pravaah RTP streaming framework.\n")
+	fmt.Printf("Akshay Ranjan <akshay.ranjan@gmail.com>\n")
+	fmt.Printf("\n")
 	fmt.Printf("	Build machine     : %s\n", BuildMachine)
 	fmt.Printf("	Build user        : %s\n", BuildUser)
 	fmt.Printf("	Build go version  : %s\n", GOVersion)

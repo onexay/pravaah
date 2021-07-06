@@ -2,23 +2,49 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"pravaah/api"
 	"pravaah/config"
+	"pravaah/db"
+	"pravaah/logger"
 	"pravaah/stream"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"gopkg.in/natefinch/lumberjack.v2"
+	"github.com/gorilla/websocket"
 )
 
-// Logger
-var logger lumberjack.Logger
+/*
+ * Server
+ */
+type Server struct {
+	config config.Server   // Configuration
+	db     db.Server       // Database
+	logger logger.Server   // Log rotation
+	wsConn *websocket.Conn // Websocket connection
+}
+
+// Agent instance
+var me *Server
 
 func Server_main(configFile string) {
+	var err error = nil
+
+	// Create server instance
+	me = new(Server)
+
 	// Server mode of operation
 	fmt.Printf("Starting server ...\n")
+
+	// Parse config file
+	if err = me.config.Parse(configFile); err != nil {
+		return
+	}
+
+	// Initialize logger
+	if err = me.logger.Init(&me.config); err != nil {
+		return
+	}
 
 	// Initialize a secret
 	if err := InitSecret(); err != nil {
@@ -28,21 +54,6 @@ func Server_main(configFile string) {
 
 	// Dump secret on console for admin
 	fmt.Printf("Server secret is [%s]\n", config.Secret)
-
-	// Check for config file
-	if configFile == "" {
-		fmt.Printf("No config file specified. Exiting.\n")
-		return
-	}
-
-	// Parse config file
-	_ = config.ParseServerFile(configFile)
-
-	// Logger setup
-	logger.Filename = config.Server.LogFileLocation
-	logger.MaxSize = 1
-	log.SetPrefix("[PRAVAAH SERVER] ")
-	log.SetOutput(&logger)
 
 	// Create a websocket router
 	ws_router := chi.NewRouter()

@@ -1,5 +1,26 @@
 package messaging
 
+/*
+ * Interface for messaging between agents and server
+ */
+type Messaging_T interface {
+	// Connection establishment
+	ConnectReq()
+	ConnectRsp(rsp *RspMsg)
+
+	// Dynamic feature negotiation
+	FeatureSupportReq()
+	FeatureSupportRsp()
+
+	// Periodic sync
+	SyncReq()
+	SyncRsp()
+
+	// Add source
+	AddSourceReq(req *ReqMsg)
+	AddSourceRsp()
+}
+
 const (
 	MSG_CONNECT_REQ = iota // Connection REQ message
 	MSG_CONNECT_RSP        // Connection RSP message
@@ -21,6 +42,7 @@ type RspMsg struct {
 type ConnectReqMsg struct {
 	Version string `json:"version"`
 	Secret  string `json:"secret"`
+	ID      string `json:"id"`
 }
 
 type ConnectRspMsg struct {
@@ -35,4 +57,12 @@ type CapabilitiesMsg struct {
 
 type SyncMsg struct {
 	Secret string `json:"secret"`
+}
+
+type AddSourceReqMsg struct {
+	Path  string `json:"path"`
+	Alias string `json:"alias"`
+}
+
+type AddSourceRspMsg struct {
 }
