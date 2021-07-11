@@ -1,0 +1,24 @@
+{
+    "openapi":"3.0.2",
+    "info": {
+        "title":"Pravaah",
+        "version":"0.1-alpha"
+    },
+    "servers": [
+        {"url":"https://api.server.test/v1"}
+    ],
+    "paths": {
+        "/v1/secret/list": {
+            "get": {
+                "description": "List current server secret string",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+
+    }
+}

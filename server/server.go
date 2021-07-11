@@ -1,3 +1,25 @@
+/* MIT License
+ *
+ * Copyright (c) 2021 Akshay Ranjan
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package server
 
 import (
@@ -73,6 +95,11 @@ func Server_main(configFile string) {
 		return
 	}
 
+	// Open ALIASES db
+	if err = me.db.InitAliasesDB(); err != nil {
+		return
+	}
+
 	// Initialize a secret
 	if err := InitSecret(); err != nil {
 		fmt.Printf("Unable to generate secret, error [%s]\n", err.Error())
@@ -95,15 +122,19 @@ func Server_main(configFile string) {
 	ws_router.HandleFunc("/stream", stream.Handle)
 
 	// Setup routes for frontend
-	http_router.Get(api.URL_AGENT_LIST, ListAgents)
-	http_router.Post(api.URL_AGENT_ACTIVE, ActivateAgent)
-	http_router.Post(api.URL_AGENT_INACTIVE, DeactivateAgent)
-	http_router.Post(api.URL_AGENT_REMOVE, RemoveAgent)
-	http_router.Get(api.URL_AGENT_SOURCES_LIST, ListSources)
-	http_router.Post(api.URL_AGENT_SOURCES_ADD, AddSource)
-	http_router.Delete(api.URL_AGENT_SOURCES_REMOVE, RemoveSource)
-	http_router.Post(api.URL_AGENT_SOURCES_START, StartSource)
-	http_router.Post(api.URL_AGENT_SOURCES_STOP, StopSource)
+	http_router.Get(api.URL_SECRET_LIST, ListSecrets)
+	http_router.Get(api.URL_SECRET_RENEW, RenewSecrets)
+
+	http_router.Get(api.URL_AGENT_LIST, HandleAgentsList)
+	http_router.Post(api.URL_AGENT_ACTIVE, HandleAgentActivate)
+	http_router.Post(api.URL_AGENT_INACTIVE, HandleAgentDeactivate)
+	http_router.Post(api.URL_AGENT_REMOVE, HandleAgentDelete)
+
+	http_router.Get(api.URL_AGENT_SOURCES_LIST, HandleSourcesList)
+	http_router.Post(api.URL_AGENT_SOURCES_ADD, HandleSourceAdd)
+	http_router.Delete(api.URL_AGENT_SOURCES_REMOVE, HandleSourceDelete)
+	http_router.Post(api.URL_AGENT_SOURCES_START, HandleSourceStart)
+	http_router.Post(api.URL_AGENT_SOURCES_STOP, HandleSourceStop)
 
 	// Wait for websocket connections from client
 	go http.ListenAndServe(me.config.ListenerEndpoint, ws_router)

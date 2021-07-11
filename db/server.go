@@ -35,46 +35,82 @@ func (server *Server) InitHandle(cfg *config.Server) error {
 	return err
 }
 
+/*
+ *
+ */
+func (server *Server) initDB(num int) error {
+	var err error = nil
+
+	server.db[num], err = server.handle.Select(num)
+	if err != nil {
+		log.Fatalf("Unable to open db [%d] in [%s], error [%s]\n", server.db[num].Index(), server.cfg.DataDir, err.Error())
+		return err
+	}
+
+	log.Printf("Opened db [%s] index [%d] successfully.\n", server.cfg.DataDir, server.db[num].Index())
+
+	return err
+}
+
+/*
+ *
+ */
 func (server *Server) InitStateDB() error {
-	var err error = nil
-
-	server.db[DB_STATE], err = server.handle.Select(DB_STATE)
-	if err != nil {
-		log.Fatalf("Unable to open db [%d] in [%s], error [%s]\n", server.db[DB_STATE].Index(), server.cfg.DataDir, err.Error())
-		return err
-	}
-
-	log.Printf("Opened db [%s] index [%d] successfully.\n", server.cfg.DataDir, server.db[DB_STATE].Index())
-
-	return err
+	return server.initDB(DB_STATE)
 }
 
-func (server *Server) InitSourcesDB() error {
-	return nil
-}
-
+/*
+ *
+ */
 func (server *Server) InitAgentsDB() error {
-	var err error = nil
-
-	server.db[DB_AGENTS], err = server.handle.Select(DB_AGENTS)
-	if err != nil {
-		log.Fatalf("Unable to open db [%d] in [%s], error [%s]\n", server.db[DB_AGENTS].Index(), server.cfg.DataDir, err.Error())
-		return err
-	}
-
-	log.Printf("Opened db [%s] index [%d] successfully.\n", server.cfg.DataDir, server.db[DB_AGENTS].Index())
-
-	return err
+	return server.initDB(DB_AGENTS)
 }
 
+/*
+ *
+ */
+func (server *Server) InitSourcesDB() error {
+	return server.initDB(DB_SOURCES)
+}
+
+/*
+ *
+ */
+func (server *Server) InitAliasesDB() error {
+	return server.initDB(DB_ALIASES)
+}
+
+/*
+ *
+ */
+func (server *Server) getDB(num int) *ledisDB.DB {
+	return server.db[num]
+}
+
+/*
+ *
+ */
 func (server *Server) GetStateDB() *ledisDB.DB {
-	return server.db[DB_STATE]
+	return server.getDB(DB_STATE)
 }
 
+/*
+ *
+ */
 func (server *Server) GetSourceDB() *ledisDB.DB {
-	return server.db[DB_SOURCES]
+	return server.getDB(DB_SOURCES)
 }
 
+/*
+ *
+ */
 func (server *Server) GetAgentsDB() *ledisDB.DB {
-	return server.db[DB_AGENTS]
+	return server.getDB(DB_AGENTS)
+}
+
+/*
+ *
+ */
+func (server *Server) GetAliasesDB() *ledisDB.DB {
+	return server.getDB(DB_ALIASES)
 }

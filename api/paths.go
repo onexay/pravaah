@@ -3,8 +3,13 @@ package api
 const (
 	// Base URL
 	URL_BASE    = "/v1"
+	URL_SECRET  = "/secret"
 	URL_AGENTS  = "/agents"
 	URL_SOURCES = "/sources"
+
+	// Secret
+	URL_SECRET_LIST  = URL_BASE + URL_SECRET + "/list"  // Show current secret
+	URL_SECRET_RENEW = URL_BASE + URL_SECRET + "/renew" // Regenerate new secret
 
 	// Agents
 	URL_AGENT_LIST     = URL_BASE + URL_AGENTS + "/list"

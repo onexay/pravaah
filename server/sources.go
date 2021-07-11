@@ -23,23 +23,53 @@
 package server
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
-	"pravaah/config"
+	"encoding/json"
+	"log"
+	"pravaah/api"
+
+	"github.com/google/uuid"
+	"github.com/ledisdb/ledisdb/ledis"
 )
 
-func InitSecret() error {
-	randBytes := make([]byte, 32)
+/*
+ * Add a source to prepare for streaming
+ */
+func SourceAdd(source *api.Source) (string, bool, error) {
+	// Get agents DB
+	agent_store := me.db.GetAgentsDB()
 
-	// Generate a random string for secret
-	if _, err := rand.Read(randBytes); err != nil {
-		fmt.Printf("Unable to generate secret. Exiting.\n")
-		return err
+	// Get aliases DB
+	alias_store := me.db.GetAliasesDB()
+
+	// Check agent
+	i, _ := agent_store.Exists([]byte(source.AgentID))
+
+	log.Printf("Checking source agent [%s], [%d]\n", source.AgentID, i)
+
+	if i == 0 {
+		return "", false, ledis.ErrScoreMiss
 	}
 
-	// Encode a hex string
-	config.Secret = hex.EncodeToString(randBytes)
+	// Get sources DB
+	source_store := me.db.GetSourceDB()
 
-	return nil
+	// Marshal data
+	bytes, _ := json.Marshal(source)
+
+	// Check source alias
+	if bytes, err := alias_store.Get([]byte(source.Alias)); err == nil {
+		// Existing entry found
+		return string(bytes), true, nil
+	}
+
+	// Generate a new ID for this source
+	id := uuid.New().String()
+
+	// Create source binding and persist
+	source_store.Set([]byte(id), bytes)
+
+	// Create alias binding and persist
+	alias_store.Set([]byte(source.Alias), []byte(id))
+
+	return id, false, nil
 }
