@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"pravaah/config"
 	"pravaah/messaging"
 	"pravaah/version"
 
@@ -12,52 +11,85 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-/* Handle connection request from an Agent
- *
+/*
+ * Handle connection request from an Agent
  */
-func HandleAgentConnectionReq(conn *websocket.Conn, reqMsg *messaging.ReqMsg) {
+func HandleAgentConnectReq(conn *websocket.Conn, reqMsg *messaging.ReqMsg) {
 	// Unmarshall data
 	var connectReqMsg messaging.ConnectReqMsg = messaging.ConnectReqMsg{}
 	if err := json.Unmarshal([]byte(reqMsg.Data), &connectReqMsg); err != nil {
-		log.Printf("Unable to unmarshall connect req to JSON from agent [%s], error [%s]\n", conn.RemoteAddr().String(), err.Error())
+		log.Printf("Unable to unmarshall connect req to JSON from agent [%s], error [%s]\n",
+			conn.RemoteAddr().String(),
+			err.Error())
 		return
 	}
 
-	// Check agent ID
-	var id uuid.UUID
-	if connectReqMsg.ID == "" {
-		log.Printf("Agent [%s] doesn't have an ID, generating a new one\n", conn.RemoteAddr().String())
-		id = uuid.New()
-	} else {
-		log.Printf("Agent [%s] has an ID [%s], reuseing same\n", conn.RemoteAddr().String(), connectReqMsg.ID)
-		id, _ = uuid.Parse(connectReqMsg.ID)
+	/* This could either be a fresh agent or a returning agent. In case of a
+	 * fresh agent, server will try to assign a UID and will register and
+	 * persist agent info. Optionally for a returning agent, it will validate
+	 * agent particulars.
+	 */
+
+	var uid string = connectReqMsg.ID
+
+	//--- New Agent ---//
+
+	if len(uid) == 0 {
+		// This is a new agent, generate a new uid
+		uid = uuid.NewString()
+
+		log.Printf("Agent [%s] doesn't have an ID, generated id [%s]\n", conn.RemoteAddr().String(), uid)
+
+		// Register agent
+		RegisterAgent(uid, &connectReqMsg)
+
+		// Prepare and marshal response data
+		rspData, _ := json.Marshal(messaging.ConnectRspMsg{
+			Version: version.GITInfo,
+			ID:      uid,
+		})
+
+		// Send response and leave connection open
+		conn.WriteJSON(messaging.RspMsg{
+			Type:   messaging.MSG_CONNECT_RSP,
+			Data:   string(rspData),
+			Status: messaging.MSG_STATUS_OK,
+		})
+
+		return
 	}
 
-	// Check server secret
-	if connectReqMsg.Secret != config.Secret {
-		log.Printf("Agent [%s] secret [%s] doesn't match current server secret [%s]\n", id.String(), connectReqMsg.Secret, config.Secret)
+	//--- Returning Agent ---//
+
+	log.Printf("Agent [%s] has an ID [%s]\n", conn.RemoteAddr().String(), connectReqMsg.ID)
+
+	// Retrieve agent info
+	_, err := RetrieveAgent(connectReqMsg.ID)
+	if err != nil {
+		log.Printf("Unable to find info for agent [%s], error [%s]", connectReqMsg.ID, err)
+
+		// Send response and close connection
+		conn.WriteJSON(messaging.RspMsg{
+			Type:   messaging.MSG_CONNECT_RSP,
+			Status: messaging.MSG_STATUS_ERROR,
+		})
+		conn.Close()
+
+		return
 	}
 
-	// Create a response for this Agent
-	connectRspMsg, err := json.Marshal(messaging.ConnectRspMsg{
+	// Prepare and marshal response data
+	rspData, _ := json.Marshal(messaging.ConnectRspMsg{
 		Version: version.GITInfo,
-		ID:      id.String(),
+		ID:      uid,
 	})
 
-	if err != nil {
-		log.Printf("Unable to encode connect request as JSON, error [%s]\n", err.Error())
-		return
-	}
-
-	// Prepare message
-	rspMsg := messaging.RspMsg{
+	// Send respond and leave connection open
+	conn.WriteJSON(messaging.RspMsg{
 		Type:   messaging.MSG_CONNECT_RSP,
-		Data:   string(connectRspMsg),
-		Status: "OK",
-	}
-
-	// Send message
-	conn.WriteJSON(rspMsg)
+		Data:   string(rspData),
+		Status: messaging.MSG_STATUS_OK,
+	})
 }
 
 /* Handle incoming requests from Agents
@@ -78,9 +110,6 @@ func HandleAgent(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Close websocket
-	defer conn.Close()
-
 	// Process messages from this Agent
 	for {
 		// Read messages from this agent
@@ -99,7 +128,7 @@ func HandleAgent(res http.ResponseWriter, req *http.Request) {
 
 		// Dispatch message to handler
 		if reqMsg.Type == messaging.MSG_CONNECT_REQ {
-			HandleAgentConnectionReq(conn, &reqMsg)
+			HandleAgentConnectReq(conn, &reqMsg)
 		} else if reqMsg.Type == messaging.MSG_CAPABILITY {
 
 		}

@@ -22,11 +22,28 @@ type Messaging_T interface {
 }
 
 const (
-	MSG_CONNECT_REQ = iota // Connection REQ message
-	MSG_CONNECT_RSP        // Connection RSP message
-	MSG_CAPABILITY         // Capabilities message
-	MSG_SYNC               // Sync message
+	MSG_STATUS_OK      = 1
+	MSG_STATUS_ERROR   = 2
+	MSG_STATUS_INVALID = 3
+
+	MSG_CONNECT_REQ = 1 // Connection REQ message
+	MSG_CONNECT_RSP = 2 // Connection RSP message
+	MSG_CAPABILITY  = 3 // Capabilities message
+	MSG_SYNC        = 4 // Sync message
 )
+
+var MsgStatusStr []string = []string{
+	"NONE",
+	"OK",
+	"ERROR",
+	"INVALID",
+}
+
+var MsgTypeStr []string = []string{
+	"NONE",
+	"CONNECT_REQ",
+	"CONNECT_RSP",
+}
 
 type ReqMsg struct {
 	Type int    `json:"type"`
@@ -35,14 +52,16 @@ type ReqMsg struct {
 
 type RspMsg struct {
 	Type   int    `json:"type"`
-	Data   string `json:"data"`
-	Status string `json:"status"`
+	Data   string `json:"data,omitempty"`
+	Status int    `json:"status"`
 }
 
 type ConnectReqMsg struct {
-	Version string `json:"version"`
-	Secret  string `json:"secret"`
-	ID      string `json:"id"`
+	Alias       string `json:"alias"`
+	Description string `json:"description"`
+	Version     string `json:"version"`
+	Secret      string `json:"secret"`
+	ID          string `json:"id"`
 }
 
 type ConnectRspMsg struct {

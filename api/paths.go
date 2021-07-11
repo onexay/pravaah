@@ -2,20 +2,20 @@ package api
 
 const (
 	// Base URL
-	URL_BASE = "/v1"
+	URL_BASE    = "/v1"
+	URL_AGENTS  = "/agents"
+	URL_SOURCES = "/sources"
 
-	// List
-	URL_LIST = URL_BASE + "/list"
+	// Agents
+	URL_AGENT_LIST     = URL_BASE + URL_AGENTS + "/list"
+	URL_AGENT_ACTIVE   = URL_BASE + URL_AGENTS + "/active"
+	URL_AGENT_INACTIVE = URL_BASE + URL_AGENTS + "/inactive"
+	URL_AGENT_REMOVE   = URL_BASE + URL_AGENTS + "/remove"
 
-	// Add
-	URL_ADD = URL_BASE + "/add"
-
-	// Remove
-	URL_REMOVE = URL_BASE + "/remove"
-
-	// Start
-	URL_START = URL_BASE + "/start"
-
-	// Stop
-	URL_STOP = URL_BASE + "/stop"
+	// Sources
+	URL_AGENT_SOURCES_LIST   = URL_BASE + URL_SOURCES + "/list"
+	URL_AGENT_SOURCES_ADD    = URL_BASE + URL_SOURCES + "/add"
+	URL_AGENT_SOURCES_REMOVE = URL_BASE + URL_SOURCES + "/remove"
+	URL_AGENT_SOURCES_START  = URL_BASE + URL_SOURCES + "/start"
+	URL_AGENT_SOURCES_STOP   = URL_BASE + URL_SOURCES + "/stop"
 )

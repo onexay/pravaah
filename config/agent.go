@@ -7,6 +7,8 @@ import (
 )
 
 type Agent struct {
+	Alias           string `toml:"alias"`
+	Description     string `toml:"description"`
 	ServerEndpoint  string `toml:"serverEndpoint"`
 	ServerSecret    string `toml:"serverSecret"`
 	LogFileLocation string `toml:"logFileLocation"`

@@ -16,10 +16,18 @@ func (me *Agent) ConnectReq() {
 		return
 	}
 
+	/* If agent is connecting to the server for the first time, it will not
+	 * have any ID. The responsibility of assigning IDs is with server. ID will
+	 * by empty if no entry is found for ID in STATE DB, it's value will be
+	 * marshalled as empty string.
+	 */
+
 	connectReqMsg, err := json.Marshal(messaging.ConnectReqMsg{
-		Version: version.GITInfo,
-		Secret:  me.config.ServerSecret,
-		ID:      id,
+		Alias:       me.config.Alias,
+		Description: me.config.Description,
+		Version:     version.GITInfo,
+		Secret:      me.config.ServerSecret,
+		ID:          id,
 	})
 
 	if err != nil {

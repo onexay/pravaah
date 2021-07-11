@@ -27,6 +27,10 @@ type Server struct {
 // Agent instance
 var me *Server
 
+func Server_exit(server *Server) {
+	fmt.Printf("Exiting server ...\n")
+}
+
 func Server_main(configFile string) {
 	var err error = nil
 
@@ -36,6 +40,9 @@ func Server_main(configFile string) {
 	// Server mode of operation
 	fmt.Printf("Starting server ...\n")
 
+	// Cleanup
+	defer Server_exit(me)
+
 	// Parse config file
 	if err = me.config.Parse(configFile); err != nil {
 		return
@@ -43,6 +50,26 @@ func Server_main(configFile string) {
 
 	// Initialize logger
 	if err = me.logger.Init(&me.config); err != nil {
+		return
+	}
+
+	// Initialize DBs
+	if err = me.db.InitHandle(&me.config); err != nil {
+		return
+	}
+
+	// Open STATE db
+	if err = me.db.InitStateDB(); err != nil {
+		return
+	}
+
+	// Open SOURCES db
+	if err = me.db.InitSourcesDB(); err != nil {
+		return
+	}
+
+	// Open AGENTS db
+	if err = me.db.InitAgentsDB(); err != nil {
 		return
 	}
 
@@ -68,15 +95,19 @@ func Server_main(configFile string) {
 	ws_router.HandleFunc("/stream", stream.Handle)
 
 	// Setup routes for frontend
-	http_router.Get(api.URL_LIST, api.List)
-	http_router.Post(api.URL_ADD, api.Add)
-	http_router.Delete(api.URL_REMOVE, api.Remove)
-	http_router.Post(api.URL_START, api.Start)
-	http_router.Post(api.URL_STOP, api.Stop)
+	http_router.Get(api.URL_AGENT_LIST, ListAgents)
+	http_router.Post(api.URL_AGENT_ACTIVE, ActivateAgent)
+	http_router.Post(api.URL_AGENT_INACTIVE, DeactivateAgent)
+	http_router.Post(api.URL_AGENT_REMOVE, RemoveAgent)
+	http_router.Get(api.URL_AGENT_SOURCES_LIST, ListSources)
+	http_router.Post(api.URL_AGENT_SOURCES_ADD, AddSource)
+	http_router.Delete(api.URL_AGENT_SOURCES_REMOVE, RemoveSource)
+	http_router.Post(api.URL_AGENT_SOURCES_START, StartSource)
+	http_router.Post(api.URL_AGENT_SOURCES_STOP, StopSource)
 
 	// Wait for websocket connections from client
-	go http.ListenAndServe(":10080", ws_router)
+	go http.ListenAndServe(me.config.ListenerEndpoint, ws_router)
 
 	// Wait for connections from frontend
-	http.ListenAndServe(":8080", http_router)
+	http.ListenAndServe(me.config.APIEndpoint, http_router)
 }

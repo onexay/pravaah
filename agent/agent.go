@@ -26,6 +26,10 @@ type Agent struct {
 // Agent instance
 var me *Agent
 
+func Agent_exit(agent *Agent) {
+	fmt.Printf("Exiting agent ...\n")
+}
+
 func Agent_main(configFile string) {
 	var err error = nil
 
@@ -34,6 +38,9 @@ func Agent_main(configFile string) {
 
 	// Agent mode of operation
 	fmt.Printf("Starting agent ...\n")
+
+	// Handle exit
+	defer Agent_exit(me)
 
 	// Parse config file
 	if err = me.config.Parse(configFile); err != nil {
@@ -45,13 +52,18 @@ func Agent_main(configFile string) {
 		return
 	}
 
-	// Initialize DB
+	// Initialize DB handle
 	if err = me.db.InitHandle(&me.config); err != nil {
 		return
 	}
 
-	// Initialize STATE DB
-	if err = me.db.InitState(); err != nil {
+	// Open STATE DB
+	if err = me.db.InitStateDB(); err != nil {
+		return
+	}
+
+	// Open SOURCES DB
+	if err = me.db.InitSourcesDB(); err != nil {
 		return
 	}
 
@@ -69,7 +81,7 @@ func Agent_main(configFile string) {
 		return
 	}
 
-	defer me.wsConn.Close()
+	log.Printf("Connected to server [%s] successfully", me.wsConn.RemoteAddr().String())
 
 	// Send connection request to server
 	me.ConnectReq()
@@ -90,7 +102,16 @@ func Agent_main(configFile string) {
 		}
 
 		// Check message status
-		log.Printf("Status is %s\n", rspMsg.Status)
+		if rspMsg.Status == messaging.MSG_STATUS_ERROR {
+			log.Printf("Server message [%s] status is [%s], skip processing of message\n",
+				messaging.MsgTypeStr[rspMsg.Type],
+				messaging.MsgStatusStr[rspMsg.Status])
+			continue
+		}
+
+		log.Printf("Server message [%s] status is [%s]\n",
+			messaging.MsgTypeStr[rspMsg.Type],
+			messaging.MsgStatusStr[rspMsg.Status])
 
 		// Dispatch message to handler
 		if rspMsg.Type == messaging.MSG_CONNECT_RSP {

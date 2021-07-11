@@ -1,2 +1,2 @@
-from scratch
+FROM scratch
 

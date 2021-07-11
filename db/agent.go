@@ -8,12 +8,6 @@ import (
 	ledisDB "github.com/ledisdb/ledisdb/ledis"
 )
 
-const (
-	DB_STATE   = 0 // Runtime state keys
-	DB_SOURCES = 1 // Sources
-	DB_MAX     = 2 // MUST BE LAST
-)
-
 type Agent struct {
 	cfg    *ledisDBCfg.Config  // DB configuration
 	handle *ledisDB.Ledis      // DB handle
@@ -41,7 +35,7 @@ func (agent *Agent) InitHandle(cfg *config.Agent) error {
 	return err
 }
 
-func (agent *Agent) InitState() error {
+func (agent *Agent) InitStateDB() error {
 	var err error = nil
 
 	agent.db[DB_STATE], err = agent.handle.Select(DB_STATE)
@@ -53,6 +47,14 @@ func (agent *Agent) InitState() error {
 	log.Printf("Opened db [%s] index [%d] successfully.\n", agent.cfg.DataDir, agent.db[DB_STATE].Index())
 
 	return err
+}
+
+func (agent *Agent) InitSourcesDB() error {
+	return nil
+}
+
+func (agent *Agent) InitAgentsDB() error {
+	return nil
 }
 
 func (agent *Agent) GetAgentID() (string, error) {

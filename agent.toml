@@ -1,3 +1,5 @@
+alias = "My Location 01"
+description = "I am located in the middle of need and desire :-)"
 serverEndpoint = "localhost:10080"
 serverSecret = "01ca8b16316d472b4b5eb0bebbb19a7029e6622523be92cf33fcc9b4838722c6"
 logFileLocation = "logs/pravaah_agent.log"
