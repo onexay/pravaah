@@ -114,6 +114,13 @@ func HandleAgentConnectReq(conn *websocket.Conn, reqMsg *messaging.ReqMsg) {
 	})
 }
 
+/*
+ *
+ */
+func SendAgentSourcesAddReq() error {
+	return nil
+}
+
 /* Handle incoming requests from Agents
  *
  * This method handles incoming requests from Agents and saves the

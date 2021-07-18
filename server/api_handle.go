@@ -62,27 +62,27 @@ func HandleAgentsList(res http.ResponseWriter, req *http.Request) {
 	// Get all agent UIDs
 	keys, _ := store.Scan(ledis.KV, nil, 0, false, "")
 
-	// Agent info array
-	var agents []api.Agent
+	// Response data
+	var result []api.AgentListResultElem
 
 	// Fetch agent info
 	for _, key := range keys {
 		// Get data
 		bytes, _ := store.Get(key)
 
-		var agent api.Agent
+		var agent api.AgentListResultElem
 
 		// Unmarshal
 		json.Unmarshal(bytes, &agent)
 
 		// Unmarshal and append
-		agents = append(agents, agent)
+		result = append(result, agent)
 	}
 
 	// Marshal response
-	bytes, _ := json.Marshal(api.AgentResponseList{
+	bytes, _ := json.Marshal(api.AgentListResponse{
 		Status: messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
-		Data:   agents,
+		Data:   result,
 	})
 
 	res.Write(bytes)
@@ -102,7 +102,7 @@ func HandleAgentDeactivate(res http.ResponseWriter, req *http.Request) {
  *
  */
 func HandleAgentDelete(res http.ResponseWriter, req *http.Request) {
-	var agents []api.AgentDel
+	var agents []api.AgentDeleteElem
 
 	log.Printf("Received [%s] [%s] from [%s]\n", req.Method, req.URL, req.RemoteAddr)
 
@@ -115,21 +115,39 @@ func HandleAgentDelete(res http.ResponseWriter, req *http.Request) {
 	// Unmarshal body
 	json.Unmarshal(bytes, &agents)
 
-	// Get DB
-	store := me.db.GetAgentsDB()
+	// Response data
+	var result []api.AgentDeleteResultElem
+	var sources []api.SourceDeleteResultElem
 
-	// Iterate and delete
+	// Iterate through sources
 	for _, agent := range agents {
-		// Delete entry
-		store.Del([]byte(agent.ID))
+		// Delete agent
+		id, err := AgentDelete(&agent)
 
-		log.Printf("Deleting agent [%s] alias [%s]\n", agent.ID, agent.Alias)
+		if err != nil {
+			result = append(result, api.AgentDeleteResultElem{
+				Status:      messaging.MsgStatusStr[messaging.MSG_STATUS_ERROR],
+				Description: err.Error(),
+				Alias:       agent.Alias,
+				ID:          id,
+			})
+		} else {
+			// Delete all sources
+			sources = SourceDeleteAll(agent.ID)
+
+			result = append(result, api.AgentDeleteResultElem{
+				Status:  messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
+				Alias:   agent.Alias,
+				ID:      id,
+				Sources: sources,
+			})
+		}
 	}
 
 	// Marshal response
-	bytes, _ = json.Marshal(api.AgentDelRsp{
-		Count:  len(agents),
+	bytes, _ = json.Marshal(api.AgentDeleteResponse{
 		Status: messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
+		Data:   result,
 	})
 
 	res.Write(bytes)
@@ -151,7 +169,7 @@ func HandleSourcesList(res http.ResponseWriter, req *http.Request) {
 	keys, _ := store.Scan(ledis.KV, nil, 0, false, "")
 
 	// Response data
-	var sources []api.SourceExt
+	var result []api.SourceListResultElem
 
 	// Iterate through keys
 	for _, key := range keys {
@@ -159,22 +177,25 @@ func HandleSourcesList(res http.ResponseWriter, req *http.Request) {
 		bytes, _ := store.Get(key)
 
 		// Source
-		var source api.Source
+		var source api.SourceAddElem
 
 		// Unmarshall
 		json.Unmarshal(bytes, &source)
 
 		// Append to response
-		sources = append(sources, api.SourceExt{
-			Source: source,
-			ID:     string(key),
+		result = append(result, api.SourceListResultElem{
+			Alias:       source.Alias,
+			Description: source.Description,
+			Path:        source.Path,
+			ID:          string(key),
+			AgentID:     source.AgentID,
 		})
 	}
 
 	// Marshal response
-	bytes, _ := json.Marshal(api.SourceResponseList{
+	bytes, _ := json.Marshal(api.SourceListResponse{
 		Status: messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
-		Data:   sources,
+		Data:   result,
 	})
 
 	res.Write(bytes)
@@ -184,7 +205,7 @@ func HandleSourcesList(res http.ResponseWriter, req *http.Request) {
  *
  */
 func HandleSourceAdd(res http.ResponseWriter, req *http.Request) {
-	var sources []api.Source
+	var sources []api.SourceAddElem
 
 	log.Printf("Received [%s] [%s] from [%s]\n", req.Method, req.URL, req.RemoteAddr)
 
@@ -197,40 +218,87 @@ func HandleSourceAdd(res http.ResponseWriter, req *http.Request) {
 	// Unmarshal body
 	json.Unmarshal(bytes, &sources)
 
-	// Source IDs
-	var sourceIDs []api.SourceID
+	// Response data
+	var result []api.SourceAddResultElem
 
 	// Iterate through sources
 	for _, source := range sources {
 		// Add source
-		id, exists, err := SourceAdd(&source)
+		id, err := SourceAdd(&source)
+
 		if err != nil {
-			sourceIDs = append(sourceIDs, api.SourceID{
-				Alias:  source.Alias,
-				Status: messaging.MsgStatusStr[messaging.MSG_STATUS_ERROR],
+			log.Printf("Adding source [%s] id fail, error [%s]\n", source.Alias, err.Error())
+
+			result = append(result, api.SourceAddResultElem{
+				Status:      messaging.MsgStatusStr[messaging.MSG_STATUS_ERROR],
+				Description: err.Error(),
+				Alias:       source.Alias,
 			})
 		} else {
-			sourceIDs = append(sourceIDs, api.SourceID{
+			log.Printf("Adding source [%s] id [%s] success\n", source.Alias, id)
+
+			result = append(result, api.SourceAddResultElem{
+				Status: messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
 				Alias:  source.Alias,
 				ID:     id,
-				New:    !exists,
-				Status: messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
 			})
 		}
 	}
 
 	// Marshal response
-	bytes, _ = json.Marshal(api.SourceResponseAdd{
+	bytes, _ = json.Marshal(api.SourceAddResponse{
 		Status: messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
-		Data:   sourceIDs,
+		Data:   result,
 	})
 
 	res.Write(bytes)
 }
 
 func HandleSourceDelete(res http.ResponseWriter, req *http.Request) {
+	var sources []api.SourceDeleteElem
+
 	log.Printf("Received [%s] [%s] from [%s]\n", req.Method, req.URL, req.RemoteAddr)
 
+	// Add usual headers
+	res.Header().Add("Content-Type", "application/json")
+
+	// Read body
+	bytes, _ := io.ReadAll(req.Body)
+
+	// Unmarshal body
+	json.Unmarshal(bytes, &sources)
+
+	// Response data
+	var result []api.SourceDeleteResultElem
+
+	// Iterate through sources
+	for _, source := range sources {
+		// Delete source
+		id, err := SourceDelete(&source)
+
+		if err != nil {
+			result = append(result, api.SourceDeleteResultElem{
+				Status:      messaging.MsgStatusStr[messaging.MSG_STATUS_ERROR],
+				Description: err.Error(),
+				Alias:       source.Alias,
+				ID:          id,
+			})
+		} else {
+			result = append(result, api.SourceDeleteResultElem{
+				Status: messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
+				Alias:  source.Alias,
+				ID:     id,
+			})
+		}
+	}
+
+	// Marshal response
+	bytes, _ = json.Marshal(api.SourceDeleteResponse{
+		Status: messaging.MsgStatusStr[messaging.MSG_STATUS_OK],
+		Data:   result,
+	})
+
+	res.Write(bytes)
 }
 
 func HandleSourceStart(res http.ResponseWriter, req *http.Request) {

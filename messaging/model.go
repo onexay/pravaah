@@ -78,9 +78,16 @@ type SyncMsg struct {
 	Secret string `json:"secret"`
 }
 
-type AddSourceReqMsg struct {
-	Path  string `json:"path"`
-	Alias string `json:"alias"`
+type SourceAddReqElem struct {
+	Alias   string `json:"alias"`
+	ID      string `json:"id"`
+	Path    string `json:"path"`
+	AgentID string `json:"agentId"`
+}
+type SourceAddReqMsg struct {
+	Sources []SourceAddReqElem `json:"sources"`
+}
+type SourceAddRspElem struct {
 }
 
 type AddSourceRspMsg struct {

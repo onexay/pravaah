@@ -128,11 +128,11 @@ func Server_main(configFile string) {
 	http_router.Get(api.URL_AGENT_LIST, HandleAgentsList)
 	http_router.Post(api.URL_AGENT_ACTIVE, HandleAgentActivate)
 	http_router.Post(api.URL_AGENT_INACTIVE, HandleAgentDeactivate)
-	http_router.Post(api.URL_AGENT_REMOVE, HandleAgentDelete)
+	http_router.Post(api.URL_AGENT_DELETE, HandleAgentDelete)
 
 	http_router.Get(api.URL_AGENT_SOURCES_LIST, HandleSourcesList)
 	http_router.Post(api.URL_AGENT_SOURCES_ADD, HandleSourceAdd)
-	http_router.Delete(api.URL_AGENT_SOURCES_REMOVE, HandleSourceDelete)
+	http_router.Post(api.URL_AGENT_SOURCES_DELETE, HandleSourceDelete)
 	http_router.Post(api.URL_AGENT_SOURCES_START, HandleSourceStart)
 	http_router.Post(api.URL_AGENT_SOURCES_STOP, HandleSourceStop)
 

@@ -15,6 +15,7 @@ func main() {
 	// Parse command line options
 	flag.BoolVar(&config.ServerMode, "server", false, "Server mode")
 	flag.StringVar(&config.ConfigFile, "config", "", "Config file location")
+	flag.BoolVar(&config.AutoAlias, "autoalias", true, "Enable auto generation of alias")
 	flag.Parse()
 
 	if config.ServerMode {

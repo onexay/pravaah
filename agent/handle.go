@@ -3,18 +3,17 @@ package agent
 import (
 	"encoding/json"
 	"log"
-	"pravaah/db"
 	"pravaah/messaging"
 	"pravaah/version"
 )
 
 func (me *Agent) ConnectReq() {
 	// Fetch agent ID from db
-	id, err := me.db.GetAgentID()
-	if err != nil {
-		log.Printf("Unable to fetch value of [%s] from DB\n", db.AGENT_ID)
-		return
-	}
+	//id, err := me.db.GetAgentID()
+	//if err != nil {
+	//	log.Printf("Unable to fetch value of [%s] from DB\n", db.AGENT_ID)
+	//	return
+	//}
 
 	/* If agent is connecting to the server for the first time, it will not
 	 * have any ID. The responsibility of assigning IDs is with server. ID will
@@ -27,7 +26,7 @@ func (me *Agent) ConnectReq() {
 		Description: me.config.Description,
 		Version:     version.GITInfo,
 		Secret:      me.config.ServerSecret,
-		ID:          id,
+		ID:          "",
 	})
 
 	if err != nil {
@@ -53,24 +52,24 @@ func (me *Agent) ConnectRsp(rsp *messaging.RspMsg) {
 	}
 
 	// Fetch agent ID from db
-	id, err := me.db.GetAgentID()
-	if err != nil {
-		log.Printf("Unable to fetch value of [%s] from DB\n", db.AGENT_ID)
-		return
-	}
+	//id, err := me.db.GetAgentID()
+	//if err != nil {
+	//	log.Printf("Unable to fetch value of [%s] from DB\n", db.AGENT_ID)
+	//	return
+	//}
 
-	if id == "" {
-		log.Printf("No existing agent ID found, using server assigned ID [%s]\n", connectRspMsg.ID)
+	//if id == "" {
+	//	log.Printf("No existing agent ID found, using server assigned ID [%s]\n", connectRspMsg.ID)
+	//
+	// Save agent ID received from server
+	//	me.db.SetAgentId(connectRspMsg.ID)
+	//} else {
+	//	log.Printf("Existing agent ID found [%s]\n", id)
 
-		// Save agent ID received from server
-		me.db.SetAgentId(connectRspMsg.ID)
-	} else {
-		log.Printf("Existing agent ID found [%s]\n", id)
-
-		if string(id) != connectRspMsg.ID {
-			log.Printf("Local agent ID [%s] doesn't match server agent ID [%s]\n", id, connectRspMsg.ID)
-		}
-	}
+	//	if string(id) != connectRspMsg.ID {
+	//		log.Printf("Local agent ID [%s] doesn't match server agent ID [%s]\n", id, connectRspMsg.ID)
+	//	}
+	//}
 
 	log.Printf("Agent version [%s], server version [%s]\n", version.GITInfo, connectRspMsg.Version)
 }
@@ -81,8 +80,8 @@ func (me *Agent) AddSourceRsp() {
 
 func (me *Agent) AddSourceReq(req *messaging.ReqMsg) {
 	// Unmarshall data
-	var addSourceReq messaging.AddSourceReqMsg = messaging.AddSourceReqMsg{}
-	if err := json.Unmarshal([]byte(req.Data), &addSourceReq); err != nil {
-		return
-	}
+	//var addSourceReq messaging.AddSourceReqMsg = messaging.AddSourceReqMsg{}
+	//if err := json.Unmarshal([]byte(req.Data), &addSourceReq); err != nil {
+	//	return
+	//}
 }

@@ -24,7 +24,9 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"pravaah/api"
+	"pravaah/db"
 	"pravaah/messaging"
 )
 
@@ -80,4 +82,29 @@ func DeregisterAgent(uid string) error {
 	}
 
 	return nil
+}
+
+func AgentDelete(agent *api.AgentDeleteElem) (string, error) {
+	// Get agents DB
+	agents_store := me.db.GetAgentsDB()
+
+	// Check agent id
+	e, err := agents_store.Exists([]byte(agent.ID))
+
+	if err != nil {
+		return agent.ID, err
+	}
+
+	if e == 0 {
+		return agent.ID, errors.New("agent ID not found")
+	}
+
+	// Get aliases DB
+	aliases_store := me.db.GetAliasesDB()
+
+	aliases_store.Del([]byte(db.PREFIX_AGENT + agent.Alias))
+
+	agents_store.Del([]byte(agent.ID))
+
+	return agent.ID, nil
 }

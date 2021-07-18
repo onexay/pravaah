@@ -35,38 +35,54 @@ func (agent *Agent) InitHandle(cfg *config.Agent) error {
 	return err
 }
 
-func (agent *Agent) InitStateDB() error {
+/*
+ *
+ */
+func (agent *Agent) initDB(num int) error {
 	var err error = nil
 
-	agent.db[DB_STATE], err = agent.handle.Select(DB_STATE)
+	agent.db[num], err = agent.handle.Select(num)
 	if err != nil {
-		log.Fatalf("Unable to open db [%d] in [%s], error [%s]\n", agent.db[DB_STATE].Index(), agent.cfg.DataDir, err.Error())
+		log.Fatalf("Unable to open db [%d] in [%s], error [%s]\n", agent.db[num].Index(), agent.cfg.DataDir, err.Error())
 		return err
 	}
 
-	log.Printf("Opened db [%s] index [%d] successfully.\n", agent.cfg.DataDir, agent.db[DB_STATE].Index())
+	log.Printf("Opened db [%s] index [%d] successfully.\n", agent.cfg.DataDir, agent.db[num].Index())
 
 	return err
 }
 
-func (agent *Agent) InitSourcesDB() error {
-	return nil
+/*
+ *
+ */
+func (agent *Agent) InitStateDB() error {
+	return agent.initDB(DB_STATE)
 }
 
-func (agent *Agent) InitAgentsDB() error {
-	return nil
+/*
+ *
+ */
+func (Agent *Agent) InitSourcesDB() error {
+	return Agent.initDB(DB_SOURCES)
 }
 
-func (agent *Agent) GetAgentID() (string, error) {
-	// Try to retrieve
-	val, err := agent.db[DB_STATE].Get([]byte(AGENT_ID))
-
-	return string(val), err
+/*
+ *
+ */
+func (agent *Agent) getDB(num int) *ledisDB.DB {
+	return agent.db[num]
 }
 
-func (agent *Agent) SetAgentId(val string) error {
-	// Try to set
-	err := agent.db[DB_STATE].Set([]byte(AGENT_ID), []byte(val))
+/*
+ *
+ */
+func (agent *Agent) GetStateDB() *ledisDB.DB {
+	return agent.getDB(DB_STATE)
+}
 
-	return err
+/*
+ *
+ */
+func (agent *Agent) GetSourceDB() *ledisDB.DB {
+	return agent.getDB(DB_SOURCES)
 }

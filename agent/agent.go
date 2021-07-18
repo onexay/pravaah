@@ -83,6 +83,8 @@ func Agent_main(configFile string) {
 
 	log.Printf("Connected to server [%s] successfully", me.wsConn.RemoteAddr().String())
 
+	SourceQuery("rtsp://192.168.1.136:554/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp?real_stream")
+
 	// Send connection request to server
 	me.ConnectReq()
 

@@ -7,6 +7,12 @@ import (
 )
 
 const (
+	// Prefixes
+	PREFIX_AGENT  = "AGENT_"
+	PREFIX_SOURCE = "SOURCE_"
+)
+
+const (
 	// Database keys
 	AGENT_ID = "AGENT_ID"
 	SECRET   = "SECRET"
@@ -43,8 +49,4 @@ type DB_T interface {
 	GetStateDB() *ledisDB.DB
 	GetSourcesDB() *ledisDB.DB
 	GetAgentsDB() *ledisDB.DB
-
-	// AGENT_ID ops
-	GetAgentID() (string, error)
-	SetAgentID(string) error
 }

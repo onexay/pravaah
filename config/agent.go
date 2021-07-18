@@ -24,3 +24,11 @@ func (cfg *Agent) Parse(fname string) error {
 
 	return err
 }
+
+func (cfg *Agent) GenerateAlias() string {
+	/* If auto generation of alias is configured, then generate an alias
+	 * and overwrite the one read from config file (even if present); we'll
+	 * emit a info in log for this though.
+	 */
+	return ""
+}
